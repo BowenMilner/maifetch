@@ -1,5 +1,7 @@
+<!-- AI-assisted with OpenAI GPT-5. -->
+
 # maifetch
-a really lazy fetch tool for [maitea](https://maitea.app) written in modern C++20\
+a really lazy fetch tool for [maitea](https://maitea.app) written in F# on .NET\
 also contains a little api wrapper for maitea too :D
 
 ![image](https://github.com/user-attachments/assets/96cd7018-8a00-4785-a1a8-9fe503263662)
@@ -24,18 +26,17 @@ obtained from `os.UserConfigDir`
 
 ## how to build
 1. clone the project with `git clone https://github.com/HutchyBen/maifetch`
-2. install CMake, a C++20 compiler, libcurl, and libpng
-3. build with `cmake -S . -B build && cmake --build build`
-4. run with `./build/maifetch --access-token <token>`, ensuring access token is either
+2. install the .NET 8 SDK
+3. build with `dotnet build maifetch.sln --configuration Release`
+4. run with `dotnet run --project src/Maifetch -- --access-token <token>`, ensuring access token is either
     - in config file
     - in environment variables
     - in command line options
 
 ## how to test
 ```sh
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
+dotnet build maifetch.sln --configuration Release
+dotnet run --project tests/Maifetch.Tests/Maifetch.Tests.fsproj --configuration Release
 ```
 
 

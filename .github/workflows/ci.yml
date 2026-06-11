@@ -1,3 +1,4 @@
+# AI-assisted with OpenAI GPT-5.
 name: CI
 
 on:
@@ -9,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install native dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libcurl4-openssl-dev libpng-dev
-      - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
       - name: Build
-        run: cmake --build build
+        run: dotnet build maifetch.sln --configuration Release
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: dotnet run --project tests/Maifetch.Tests/Maifetch.Tests.fsproj --configuration Release
