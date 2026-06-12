@@ -20,14 +20,14 @@ type CliOptions =
       BaseUrl: string option }
 
 module Config =
-    let private emptyCli =
+    let private emptyCli: CliOptions =
         { AccessToken = None
           ScoreCount = None
           LogoSize = None
           ConfigFile = None
           BaseUrl = None }
 
-    let defaults =
+    let defaults: Config =
         { AccessToken = ""
           ScoreCount = 4
           LogoSize = 20
@@ -49,13 +49,13 @@ module Config =
 
     exception HelpRequested
 
-    let private parseInt name value =
+    let private parseInt name (value: string) =
         match Int32.TryParse value with
         | true, parsed -> parsed
         | false, _ -> invalidArg name $"invalid integer for {name}: {value}"
 
     let parseCli (args: string array) =
-        let rec loop index options =
+        let rec loop index (options: CliOptions) =
             if index >= args.Length then
                 options
             else
@@ -84,7 +84,7 @@ module Config =
 
         loop 0 emptyCli
 
-    let private env names =
+    let private env (names: string list) =
         names
         |> List.tryPick (fun name ->
             let value = Environment.GetEnvironmentVariable name
@@ -105,12 +105,12 @@ module Config =
                 let home = Environment.GetFolderPath Environment.SpecialFolder.UserProfile
                 Path.Combine(home, ".config", "maifetch.json")
 
-    let private getString (element: JsonElement) name =
+    let private getString (element: JsonElement) (name: string) =
         match element.TryGetProperty name with
         | true, value when value.ValueKind = JsonValueKind.String -> Some(value.GetString())
         | _ -> None
 
-    let private getInt (element: JsonElement) name =
+    let private getInt (element: JsonElement) (name: string) =
         match element.TryGetProperty name with
         | true, value when value.ValueKind = JsonValueKind.Number ->
             match value.TryGetInt32() with
@@ -118,7 +118,7 @@ module Config =
             | false, _ -> None
         | _ -> None
 
-    let readConfigFile path =
+    let readConfigFile (path: string): Config =
         if not (File.Exists path) then
             defaults
         else
@@ -134,7 +134,7 @@ module Config =
     let private choose first second fallback =
         first |> Option.orElse second |> Option.defaultValue fallback
 
-    let load args =
+    let load (args: string array): Config =
         let cli = parseCli args
 
         let configPath =
@@ -144,7 +144,7 @@ module Config =
 
         let file = readConfigFile configPath
 
-        let merged =
+        let merged: Config =
             { AccessToken = choose cli.AccessToken (env [ "MAITEA_TOKEN"; "MAIFETCH_TOKEN" ]) file.AccessToken
               ScoreCount =
                 choose

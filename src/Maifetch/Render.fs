@@ -62,22 +62,31 @@ module Render =
     let infoLines profile plays scoreCount =
         let name = wideToNormal profile.Name
         let count = Math.Min(Math.Max(scoreCount, 0), List.length plays)
+        let idLabel = accent "ID"
+        let ratingLabel = accent "Rating"
+        let levelLabel = accent "Level"
+        let totalCreditsLabel = accent "Total Credits"
+        let recentScoresLabel = accent "Recent Scores"
 
         let header =
             [ accent name
               String.replicate name.Length "-"
-              $"{accent "ID"}: {profile.Id}"
-              $"{accent "Rating"}: {rating profile.Rating} / {rating profile.RatingHighest}"
-              $"{accent "Level"}: {profile.Level}"
-              $"{accent "Total Credits"}: {profile.PlayStats.Total}"
-              $"{accent "Recent Scores"}:" ]
+              $"{idLabel}: {profile.Id}"
+              $"{ratingLabel}: {rating profile.Rating} / {rating profile.RatingHighest}"
+              $"{levelLabel}: {profile.Level}"
+              $"{totalCreditsLabel}: {profile.PlayStats.Total}"
+              $"{recentScoresLabel}:" ]
 
         let scoreLines =
             plays
             |> List.truncate count
             |> List.collect (fun play ->
-                [ $"  {play.Song.Name.En}  {difficultyLabel play.DifficultyLevel.Value}"
-                  $"  {play.ScoreFormatted} {play.AchievementFormatted}%% {rankLabel play.Rank} {defaultArg play.FullComboLabel ""}"
+                let difficulty = difficultyLabel play.DifficultyLevel.Value
+                let rank = rankLabel play.Rank
+                let fullCombo = defaultArg play.FullComboLabel ""
+
+                [ $"  {play.Song.Name.En}  {difficulty}"
+                  $"  {play.ScoreFormatted} {play.AchievementFormatted}%% {rank} {fullCombo}"
                   "" ])
 
         header @ scoreLines
