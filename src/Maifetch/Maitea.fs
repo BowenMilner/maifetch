@@ -15,7 +15,7 @@ type MaiteaClient(config: Config, ?httpClient: HttpClient) =
         client.DefaultRequestHeaders.Authorization <- AuthenticationHeaderValue("Bearer", config.AccessToken)
         client.DefaultRequestHeaders.UserAgent.ParseAdd("maifetch-fsharp/0.1.0")
 
-    let getJsonAsync path =
+    let getJsonAsync (path: string) =
         task {
             let uri =
                 if Uri.IsWellFormedUriString(path, UriKind.Absolute) then Uri path
@@ -27,12 +27,12 @@ type MaiteaClient(config: Config, ?httpClient: HttpClient) =
             return JsonDocument.Parse body
         }
 
-    let stringAt fallback name (element: JsonElement) =
+    let stringAt (fallback: string) (name: string) (element: JsonElement) =
         match element.TryGetProperty name with
         | true, value when value.ValueKind = JsonValueKind.String -> value.GetString()
         | _ -> fallback
 
-    let intAt fallback name (element: JsonElement) =
+    let intAt (fallback: int) (name: string) (element: JsonElement) =
         match element.TryGetProperty name with
         | true, value when value.ValueKind = JsonValueKind.Number ->
             match value.TryGetInt32() with
@@ -40,43 +40,43 @@ type MaiteaClient(config: Config, ?httpClient: HttpClient) =
             | false, _ -> fallback
         | _ -> fallback
 
-    let optionStringAt name (element: JsonElement) =
+    let optionStringAt (name: string) (element: JsonElement) =
         match element.TryGetProperty name with
         | true, value when value.ValueKind = JsonValueKind.String -> Some(value.GetString())
         | _ -> None
 
-    let elementAt name (element: JsonElement) =
+    let elementAt (name: string) (element: JsonElement) =
         match element.TryGetProperty name with
         | true, value -> Some value
         | _ -> None
 
-    let parseImage element =
+    let parseImage (element: JsonElement): Image =
         { Id = intAt 0 "id" element
           Png = stringAt "" "png" element
           Webp = stringAt "" "webp" element }
 
-    let parseLocalized element =
+    let parseLocalized (element: JsonElement): LocalizedName =
         { En = stringAt "" "en" element
           Jp = stringAt "" "jp" element }
 
-    let parseTrack element =
+    let parseTrack (element: JsonElement): TrackInfo =
         { Id = intAt 0 "id" element
           Code = stringAt "" "code" element
           Name = elementAt "name" element |> Option.map parseLocalized |> Option.defaultValue { En = ""; Jp = "" }
           Artist = elementAt "artist" element |> Option.map parseLocalized |> Option.defaultValue { En = ""; Jp = "" } }
 
-    let parseDifficulty element =
+    let parseDifficulty (element: JsonElement): DifficultyLevel =
         { Key = intAt 0 "key" element
           Value = stringAt "" "value" element
           Label = stringAt "" "label" element }
 
-    let parsePlayStats element =
+    let parsePlayStats (element: JsonElement): PlayStats =
         { Total = intAt 0 "total" element
           Wins = intAt 0 "wins" element
           Vs = intAt 0 "vs" element
           Sync = intAt 0 "sync" element }
 
-    let parseProfileOptions element =
+    let parseProfileOptions (element: JsonElement): ProfileOptions =
         { Icon = elementAt "icon" element |> Option.map parseImage |> Option.defaultValue { Id = 0; Png = ""; Webp = "" }
           IconDeka =
             elementAt "icon_deka" element
@@ -84,7 +84,7 @@ type MaiteaClient(config: Config, ?httpClient: HttpClient) =
             |> Option.map parseImage
             |> Option.defaultValue { Id = 0; Png = ""; Webp = "" } }
 
-    let parseProfile element =
+    let parseProfile (element: JsonElement): Profile =
         { Id = intAt 0 "id" element
           Name = stringAt "" "name" element
           Rating = intAt 0 "rating" element
@@ -104,13 +104,13 @@ type MaiteaClient(config: Config, ?httpClient: HttpClient) =
             |> Option.map parseProfileOptions
             |> Option.defaultValue { Icon = { Id = 0; Png = ""; Webp = "" }; IconDeka = { Id = 0; Png = ""; Webp = "" } } }
 
-    let parseLinks element =
+    let parseLinks (element: JsonElement): PageLinks =
         { First = stringAt "" "first" element
           Last = stringAt "" "last" element
           Prev = optionStringAt "prev" element
           Next = optionStringAt "next" element }
 
-    let parsePlay element =
+    let parsePlay (element: JsonElement): Play =
         { Id = intAt 0 "id" element
           Achievement = intAt 0 "achievement" element
           AchievementFormatted = stringAt "" "achievement_formatted" element
